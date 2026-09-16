@@ -9,35 +9,74 @@ const CreateCourse = () => {
     const [content, setContent] = useState('');
     const [category, setCategory] = useState('');
     
-    const [error, setError] = useState('');
+    // Field-specific error states for inline validation
+    const [fieldErrors, setFieldErrors] = useState({});
+    
     const [isLoading, setIsLoading] = useState(false);
     
-    // State for top sliding success/notification banner
-    const [notification, setNotification] = useState(null); // { type: 'success' | 'error', message: '' }
+    // State for top success notification banner (Only for successful creation)
+    const [successMessage, setSuccessMessage] = useState('');
     
     const useNavigateInstance = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
+        setFieldErrors({});
+
+        const trimmedTitle = title.trim();
+        const trimmedCategory = category.trim();
+        const trimmedDescription = description.trim();
+        const trimmedContent = content.trim();
+
+        let errors = {};
+
+        // 1. Validate each field individually for inline error messages
+        if (!trimmedTitle) {
+            errors.title = 'Course title is required.';
+        } else if (trimmedTitle.length < 3) {
+            errors.title = 'Course title must be at least 3 characters long.';
+        }
+
+        if (!trimmedCategory) {
+            errors.category = 'Category is required.';
+        }
+
+        if (!trimmedDescription) {
+            errors.description = 'Short description is required.';
+        }
+
+        if (!trimmedContent) {
+            errors.content = 'Course content / syllabus is required.';
+        }
+
+        // If there are validation errors, update state and stop submission
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            // Send request to create course
-            await api.post('/courses', { title, description, content, category });
+            // Send request to create course with trimmed data
+            await api.post('/courses', { 
+                title: trimmedTitle, 
+                description: trimmedDescription, 
+                content: trimmedContent, 
+                category: trimmedCategory 
+            });
             
-            // Show success top notification banner
-            setNotification({ type: 'success', message: 'Course published successfully!' });
+            // Show success message
+            setSuccessMessage('Course published successfully!');
 
-            // Delay navigation slightly so user can see the success notification
+            // Delay navigation slightly so user can see the success state
             setTimeout(() => {
                 useNavigateInstance('/dashboard');
             }, 1500);
 
         } catch (err) {
-            const errorMsg = err.response?.data?.message || 'Failed to create course.';
-            setError(errorMsg);
-            setNotification({ type: 'error', message: errorMsg });
+            const errorMsg = err.response?.data?.message || 'Failed to create course. Please try again.';
+            setFieldErrors({ general: errorMsg });
             setIsLoading(false);
         }
     };
@@ -45,23 +84,11 @@ const CreateCourse = () => {
     return (
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 relative">
             
-            {/* Top Sliding Notification Banner */}
-            {notification && (
-                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3.5 rounded-2xl shadow-2xl border text-sm font-bold animate-in fade-in slide-in-from-top-4 duration-300 bg-white">
-                    {notification.type === 'success' ? (
-                        <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
-                    ) : (
-                        <AlertCircle size={20} className="text-red-600 shrink-0" />
-                    )}
-                    <span className={notification.type === 'success' ? 'text-emerald-900' : 'text-red-900'}>
-                        {notification.message}
-                    </span>
-                    <button 
-                        onClick={() => setNotification(null)} 
-                        className="text-slate-400 hover:text-slate-600 ml-2 p-1 rounded-lg hover:bg-slate-100 transition"
-                    >
-                        <X size={16} />
-                    </button>
+            {/* Top Success Notification Banner */}
+            {successMessage && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3.5 rounded-2xl shadow-2xl border border-emerald-100 text-sm font-bold animate-in fade-in slide-in-from-top-4 duration-300 bg-white">
+                    <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                    <span className="text-emerald-900">{successMessage}</span>
                 </div>
             )}
 
@@ -79,14 +106,15 @@ const CreateCourse = () => {
                     <p className="text-sm font-medium text-slate-500 mt-1">Fill out the details below to publish a new course for students.</p>
                 </div>
 
-                {error && (
+                {/* General Server Error Message */}
+                {fieldErrors.general && (
                     <div className="mb-6 flex items-start gap-3 rounded-xl bg-red-50 p-4 border border-red-100 text-red-700 text-sm font-semibold">
                         <AlertCircle size={18} className="shrink-0 mt-0.5" />
-                        <span>{error}</span>
+                        <span>{fieldErrors.general}</span>
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="space-y-6">
                     
                     {/* Title */}
                     <div>
@@ -99,11 +127,19 @@ const CreateCourse = () => {
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition outline-none font-medium text-slate-900"
+                                className={`w-full pl-10 pr-4 py-3 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 transition outline-none font-medium text-slate-900 ${
+                                    fieldErrors.title 
+                                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                                        : 'border-slate-200 focus:ring-blue-600/20 focus:border-blue-600'
+                                }`}
                                 placeholder="e.g., Full Stack MERN Development"
-                                required
                             />
                         </div>
+                        {fieldErrors.title && (
+                            <p className="mt-1.5 text-xs font-bold text-red-600 flex items-center gap-1">
+                                <AlertCircle size={13} /> {fieldErrors.title}
+                            </p>
+                        )}
                     </div>
 
                     {/* Category */}
@@ -117,11 +153,19 @@ const CreateCourse = () => {
                                 type="text"
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition outline-none font-medium text-slate-900"
+                                className={`w-full pl-10 pr-4 py-3 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 transition outline-none font-medium text-slate-900 ${
+                                    fieldErrors.category 
+                                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                                        : 'border-slate-200 focus:ring-blue-600/20 focus:border-blue-600'
+                                }`}
                                 placeholder="e.g., Programming, Design"
-                                required
                             />
                         </div>
+                        {fieldErrors.category && (
+                            <p className="mt-1.5 text-xs font-bold text-red-600 flex items-center gap-1">
+                                <AlertCircle size={13} /> {fieldErrors.category}
+                            </p>
+                        )}
                     </div>
 
                     {/* Description */}
@@ -135,11 +179,19 @@ const CreateCourse = () => {
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows="3"
-                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition outline-none font-medium text-slate-900 resize-none"
+                                className={`w-full pl-10 pr-4 py-3 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 transition outline-none font-medium text-slate-900 resize-none ${
+                                    fieldErrors.description 
+                                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                                        : 'border-slate-200 focus:ring-blue-600/20 focus:border-blue-600'
+                                }`}
                                 placeholder="Brief overview of what students will learn..."
-                                required
                             />
                         </div>
+                        {fieldErrors.description && (
+                            <p className="mt-1.5 text-xs font-bold text-red-600 flex items-center gap-1">
+                                <AlertCircle size={13} /> {fieldErrors.description}
+                            </p>
+                        )}
                     </div>
 
                     {/* Content / Syllabus */}
@@ -153,11 +205,19 @@ const CreateCourse = () => {
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 rows="6"
-                                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition outline-none font-medium text-slate-900"
+                                className={`w-full pl-10 pr-4 py-3 rounded-xl border bg-slate-50 focus:bg-white focus:ring-2 transition outline-none font-medium text-slate-900 ${
+                                    fieldErrors.content 
+                                        ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' 
+                                        : 'border-slate-200 focus:ring-blue-600/20 focus:border-blue-600'
+                                }`}
                                 placeholder="Detailed syllabus or learning materials..."
-                                required
                             />
                         </div>
+                        {fieldErrors.content && (
+                            <p className="mt-1.5 text-xs font-bold text-red-600 flex items-center gap-1">
+                                <AlertCircle size={13} /> {fieldErrors.content}
+                            </p>
+                        )}
                     </div>
 
                     <button

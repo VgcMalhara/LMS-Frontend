@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
     UserPlus, 
@@ -12,8 +12,7 @@ import {
     Sparkles,
     ShieldCheck,
     Eye,
-    EyeOff,
-    X
+    EyeOff
 } from 'lucide-react';
 import api from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
@@ -29,40 +28,70 @@ const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     
-    const [error, setError] = useState('');
+    // Field-specific error states for inline validation
+    const [fieldErrors, setFieldErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
 
-    // Auto-hide error toast after 4 seconds
-    useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => {
-                setError('');
-            }, 4000);
-            return () => clearTimeout(timer);
-        }
-    }, [error]);
-
     const handleRegister = async (e) => {
         e.preventDefault();
-        setError('');
-        
-        if (password !== confirmPassword) {
-            setError('Passwords do not match. Please try again.');
+        setFieldErrors({});
+
+        let errors = {};
+        const trimmedUsername = username.trim();
+        const trimmedEmail = email.trim();
+
+        // 1. Validate Username
+        if (!trimmedUsername) {
+            errors.username = 'Full name or username is required.';
+        }
+
+        // 2. Validate Email
+        if (!trimmedEmail) {
+            errors.email = 'Email address is required.';
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(trimmedEmail)) {
+                errors.email = 'Please provide a valid email address.';
+            }
+        }
+
+        // 3. Validate Password
+        if (!password) {
+            errors.password = 'Password is required.';
+        } else if (password.length < 6) {
+            errors.password = 'Password must be at least 6 characters long.';
+        }
+
+        // 4. Validate Confirm Password
+        if (!confirmPassword) {
+            errors.confirmPassword = 'Please confirm your password.';
+        } else if (password !== confirmPassword) {
+            errors.confirmPassword = 'Passwords do not match.';
+        }
+
+        // If there are validation errors, stop submission
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
             return;
         }
 
         setIsLoading(true);
         
         try {
-            const response = await api.post('/auth/register', { username, email, password, role });
+            const response = await api.post('/auth/register', { 
+                username: trimmedUsername, 
+                email: trimmedEmail, 
+                password, 
+                role 
+            });
             login(response.data);
             navigate('/');
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.message || 'Registration failed. Please try again.';
-            setError(errorMessage);
+            setFieldErrors({ general: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -71,25 +100,6 @@ const Register = () => {
     return (
         /* Fixed height container to fit screen perfectly */
         <div className="flex h-[calc(100vh-72px)] bg-slate-50 font-sans overflow-hidden">
-            
-            {/* --- Beautiful Toast Notification --- */}
-            {error && (
-                <div className="fixed top-6 right-6 z-50 flex max-w-sm items-center gap-3 rounded-xl bg-white/95 p-3.5 pr-4 shadow-2xl shadow-red-900/10 backdrop-blur-xl border border-red-100 animate-in slide-in-from-top-8 fade-in duration-300">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
-                        <AlertCircle size={20} />
-                    </div>
-                    <div className="flex-1">
-                        <h4 className="text-sm font-bold text-slate-800">Registration Failed</h4>
-                        <p className="text-xs font-medium text-slate-500 mt-0.5 leading-snug">{error}</p>
-                    </div>
-                    <button 
-                        onClick={() => setError('')} 
-                        className="text-slate-400 hover:text-slate-600 transition-colors p-1"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-            )}
             
             {/* --- Left Side - Image & Branding --- */}
             <div className="hidden lg:flex w-1/2 relative bg-slate-900 overflow-hidden">
@@ -100,7 +110,6 @@ const Register = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-slate-950 via-slate-900/80 to-blue-900/40"></div>
                 
-                {/* Adjusted padding to fit nicely */}
                 <div className="relative z-10 flex flex-col justify-center p-12 xl:p-16 w-full h-full">
                     <div className="bg-white/10 backdrop-blur-md border border-white/10 p-8 xl:p-10 rounded-[2rem] shadow-2xl">
                         <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/20 px-3.5 py-1.5 backdrop-blur-md border border-white/20 text-white w-max">
@@ -119,14 +128,13 @@ const Register = () => {
             </div>
 
             {/* --- Right Side - Form --- */}
-            {/* Added overflow-y-auto for smaller screens, perfect centering on desktop */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 relative overflow-y-auto">
                 
                 {/* Subtle Background Elements */}
                 <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-blue-400/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="absolute bottom-[10%] right-[10%] w-72 h-72 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                {/* Form Card - Made slightly more compact */}
+                {/* Form Card */}
                 <div className="w-full max-w-[420px] bg-white p-7 sm:p-8 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative z-10 my-auto">
                     
                     <div className="mb-6 text-center lg:text-left">
@@ -137,7 +145,15 @@ const Register = () => {
                         <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">Enter your details below to get started</p>
                     </div>
 
-                    <form onSubmit={handleRegister} className="space-y-4">
+                    {/* General Server Error Banner */}
+                    {fieldErrors.general && (
+                        <div className="mb-5 flex items-start gap-3 rounded-xl bg-red-50 p-3.5 border border-red-100 text-red-700 text-xs font-semibold">
+                            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                            <span>{fieldErrors.general}</span>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleRegister} noValidate className="space-y-4">
                         
                         {/* Name Input */}
                         <div>
@@ -150,11 +166,19 @@ const Register = () => {
                                     type="text" 
                                     value={username} 
                                     onChange={(e) => setUsername(e.target.value)} 
-                                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/10 focus:border-blue-500 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal"
+                                    className={`w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl border bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal ${
+                                        fieldErrors.username 
+                                            ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' 
+                                            : 'border-slate-200 focus:ring-blue-600/10 focus:border-blue-500'
+                                    }`}
                                     placeholder="e.g. Chiran Vidanagamage"
-                                    required 
                                 />
                             </div>
+                            {fieldErrors.username && (
+                                <p className="mt-1 text-xs font-bold text-red-600 flex items-center gap-1">
+                                    <AlertCircle size={12} /> {fieldErrors.username}
+                                </p>
+                            )}
                         </div>
 
                         {/* Email Input */}
@@ -168,11 +192,19 @@ const Register = () => {
                                     type="email" 
                                     value={email} 
                                     onChange={(e) => setEmail(e.target.value)} 
-                                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/10 focus:border-blue-500 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal"
+                                    className={`w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl border bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal ${
+                                        fieldErrors.email 
+                                            ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' 
+                                            : 'border-slate-200 focus:ring-blue-600/10 focus:border-blue-500'
+                                    }`}
                                     placeholder="chiran@example.com"
-                                    required 
                                 />
                             </div>
+                            {fieldErrors.email && (
+                                <p className="mt-1 text-xs font-bold text-red-600 flex items-center gap-1">
+                                    <AlertCircle size={12} /> {fieldErrors.email}
+                                </p>
+                            )}
                         </div>
 
                         {/* Password Grid */}
@@ -187,10 +219,12 @@ const Register = () => {
                                         type={showPassword ? "text" : "password"} 
                                         value={password} 
                                         onChange={(e) => setPassword(e.target.value)} 
-                                        className="w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/10 focus:border-blue-500 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal"
+                                        className={`w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm rounded-xl border bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal ${
+                                            fieldErrors.password 
+                                                ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' 
+                                                : 'border-slate-200 focus:ring-blue-600/10 focus:border-blue-500'
+                                        }`}
                                         placeholder="••••••••"
-                                        minLength="6"
-                                        required 
                                     />
                                     <button 
                                         type="button"
@@ -200,6 +234,11 @@ const Register = () => {
                                         {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                     </button>
                                 </div>
+                                {fieldErrors.password && (
+                                    <p className="mt-1 text-xs font-bold text-red-600 flex items-center gap-1">
+                                        <AlertCircle size={12} /> {fieldErrors.password}
+                                    </p>
+                                )}
                             </div>
                             
                             <div>
@@ -212,10 +251,12 @@ const Register = () => {
                                         type={showConfirmPassword ? "text" : "password"} 
                                         value={confirmPassword} 
                                         onChange={(e) => setConfirmPassword(e.target.value)} 
-                                        className="w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/10 focus:border-blue-500 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal"
+                                        className={`w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm rounded-xl border bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal ${
+                                            fieldErrors.confirmPassword 
+                                                ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' 
+                                                : 'border-slate-200 focus:ring-blue-600/10 focus:border-blue-500'
+                                        }`}
                                         placeholder="••••••••"
-                                        minLength="6"
-                                        required 
                                     />
                                     <button 
                                         type="button"
@@ -225,6 +266,11 @@ const Register = () => {
                                         {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                     </button>
                                 </div>
+                                {fieldErrors.confirmPassword && (
+                                    <p className="mt-1 text-xs font-bold text-red-600 flex items-center gap-1">
+                                        <AlertCircle size={12} /> {fieldErrors.confirmPassword}
+                                    </p>
+                                )}
                             </div>
                         </div>
 

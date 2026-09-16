@@ -8,8 +8,7 @@ import {
     AlertCircle, 
     Sparkles, 
     Eye, 
-    EyeOff, 
-    X 
+    EyeOff 
 } from 'lucide-react';
 import api from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
@@ -19,34 +18,50 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     
-    const [error, setError] = useState('');
+    // Field-specific error states for inline validation
+    const [fieldErrors, setFieldErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
 
-    // Auto-hide error toast after 4 seconds
-    useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => {
-                setError('');
-            }, 4000);
-            return () => clearTimeout(timer);
-        }
-    }, [error]);
-
     const handleLogin = async (e) => {
         e.preventDefault();
-        setError('');
+        setFieldErrors({});
+
+        let errors = {};
+        const trimmedEmail = email.trim();
+
+        // 1. Validate email inline
+        if (!trimmedEmail) {
+            errors.email = 'Email address is required.';
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(trimmedEmail)) {
+                errors.email = 'Please provide a valid email address.';
+            }
+        }
+
+        // 2. Validate password inline
+        if (!password) {
+            errors.password = 'Password is required.';
+        }
+
+        // If there are validation errors, stop submission
+        if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            const response = await api.post('/auth/login', { email, password });
+            const response = await api.post('/auth/login', { email: trimmedEmail, password });
             login(response.data);
             navigate('/');
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please check your credentials.';
-            setError(errorMessage);
+            setFieldErrors({ general: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -55,25 +70,6 @@ const Login = () => {
     return (
         /* Fixed height container to fit screen perfectly without extra scrolling */
         <div className="flex h-[calc(100vh-72px)] bg-slate-50 font-sans overflow-hidden">
-            
-            {/* --- Beautiful Toast Notification for Errors --- */}
-            {error && (
-                <div className="fixed top-6 right-6 z-50 flex max-w-sm items-center gap-3 rounded-xl bg-white/95 p-3.5 pr-4 shadow-2xl shadow-red-900/10 backdrop-blur-xl border border-red-100 animate-in slide-in-from-top-8 fade-in duration-300">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-500">
-                        <AlertCircle size={20} />
-                    </div>
-                    <div className="flex-1">
-                        <h4 className="text-sm font-bold text-slate-800">Login Failed</h4>
-                        <p className="text-xs font-medium text-slate-500 mt-0.5 leading-snug">{error}</p>
-                    </div>
-                    <button 
-                        onClick={() => setError('')} 
-                        className="text-slate-400 hover:text-slate-600 transition-colors p-1"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-            )}
             
             {/* --- Left Side - Image & Branding (Hidden on mobile) --- */}
             <div className="hidden lg:flex w-1/2 relative bg-slate-900 overflow-hidden">
@@ -119,7 +115,15 @@ const Login = () => {
                         <p className="text-xs sm:text-sm font-medium text-slate-500 mt-1.5">Please enter your details to sign in.</p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    {/* General Server Error Banner */}
+                    {fieldErrors.general && (
+                        <div className="mb-5 flex items-start gap-3 rounded-xl bg-red-50 p-3.5 border border-red-100 text-red-700 text-xs font-semibold">
+                            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                            <span>{fieldErrors.general}</span>
+                        </div>
+                    )}
+
+                    <form onSubmit={handleLogin} noValidate className="space-y-4">
                         
                         {/* Email Input */}
                         <div>
@@ -132,11 +136,19 @@ const Login = () => {
                                     type="email" 
                                     value={email} 
                                     onChange={(e) => setEmail(e.target.value)} 
-                                    className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/10 focus:border-blue-500 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal"
+                                    className={`w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm rounded-xl border bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal ${
+                                        fieldErrors.email 
+                                            ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' 
+                                            : 'border-slate-200 focus:ring-blue-600/10 focus:border-blue-500'
+                                    }`}
                                     placeholder="chiran@example.com"
-                                    required 
                                 />
                             </div>
+                            {fieldErrors.email && (
+                                <p className="mt-1 text-xs font-bold text-red-600 flex items-center gap-1">
+                                    <AlertCircle size={12} /> {fieldErrors.email}
+                                </p>
+                            )}
                         </div>
 
                         {/* Password Input with Show/Hide toggle */}
@@ -150,9 +162,12 @@ const Login = () => {
                                     type={showPassword ? "text" : "password"} 
                                     value={password} 
                                     onChange={(e) => setPassword(e.target.value)} 
-                                    className="w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600/10 focus:border-blue-500 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal"
+                                    className={`w-full pl-10 pr-10 py-2.5 sm:py-3 text-sm rounded-xl border bg-slate-50/50 hover:bg-slate-50 focus:bg-white focus:ring-2 transition-all outline-none font-medium text-slate-900 placeholder:text-slate-400 placeholder:font-normal ${
+                                        fieldErrors.password 
+                                            ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' 
+                                            : 'border-slate-200 focus:ring-blue-600/10 focus:border-blue-500'
+                                    }`}
                                     placeholder="••••••••"
-                                    required 
                                 />
                                 <button 
                                     type="button"
@@ -162,6 +177,11 @@ const Login = () => {
                                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                 </button>
                             </div>
+                            {fieldErrors.password && (
+                                <p className="mt-1 text-xs font-bold text-red-600 flex items-center gap-1">
+                                    <AlertCircle size={12} /> {fieldErrors.password}
+                                </p>
+                            )}
                         </div>
 
                         {/* Submit Button */}
