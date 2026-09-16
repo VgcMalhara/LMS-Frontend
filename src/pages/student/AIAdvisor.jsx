@@ -65,27 +65,22 @@ const AIAdvisor = () => {
         }
     };
 
-    // AI message එක ඇතුළේ තියෙන (ID: xxxxx) කියන කොටස අල්ලා Clickable Link එකක් බවට හැරවීම
+    // AI message (ID: xxxxx) Clickable Link
     const renderFormattedContent = (content) => {
         if (!content) return null;
 
-        // Regex to match patterns like: (ID: 6aa6a686f07112c962e5b66b) or similar ID formats
         const idRegex = /\(ID:\s*([a-fA-F0-9]{24})\)/g;
-        
-        // Split text by the ID pattern to render links dynamically
         const parts = [];
         let lastIndex = 0;
         let match;
 
         while ((match = idRegex.exec(content)) !== null) {
-            // Push text before the match
             if (match.index > lastIndex) {
                 parts.push(content.substring(lastIndex, match.index));
             }
 
             const courseId = match[1];
             
-            // Push the clickable button/link element
             parts.push(
                 <a
                     key={match.index}
@@ -102,7 +97,6 @@ const AIAdvisor = () => {
             lastIndex = idRegex.lastIndex;
         }
 
-        // Push remaining text
         if (lastIndex < content.length) {
             parts.push(content.substring(lastIndex));
         }
@@ -133,11 +127,11 @@ const AIAdvisor = () => {
                 )}
             </div>
 
-            {/* Chat Box Container taking remaining height */}
-            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm flex-1 flex flex-col overflow-hidden relative">
+            {/* Chat Box Container */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm flex-1 flex flex-col overflow-hidden">
                 
-                {/* Messages Scroll Area */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-50/50 pb-20">
+                {/* Messages Scroll Area with proper bottom padding */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-50/50">
                     {chatHistory.map((msg, index) => (
                         <div 
                             key={index} 
@@ -180,10 +174,10 @@ const AIAdvisor = () => {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Fixed Input Area at the bottom of the chat box */}
+                {/* Fixed Input Area at the bottom inside flex flow (No overlapping) */}
                 <form 
                     onSubmit={handleSubmit} 
-                    className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 bg-white/95 backdrop-blur-md border-t border-slate-100 flex items-center gap-3 shadow-lg z-10"
+                    className="p-3 sm:p-4 bg-white border-t border-slate-100 flex items-center gap-3 shadow-md shrink-0"
                 >
                     <input
                         type="text"

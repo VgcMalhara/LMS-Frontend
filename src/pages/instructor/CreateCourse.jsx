@@ -21,7 +21,7 @@ const CreateCourse = () => {
         try {
             // Added category to the payload
             await api.post('/courses', { title, description, content, category });
-            navigate('/dashboard'); // Dashboard එකට redirect වීම
+            navigate('/dashboard'); 
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create course.');
         } finally {

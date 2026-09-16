@@ -50,7 +50,7 @@ const EditCourse = () => {
         try {
             await api.put(`/courses/${id}`, formData);
             alert('Course updated successfully!');
-            navigate('/instructor-dashboard');
+            navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to update course.');
         } finally {

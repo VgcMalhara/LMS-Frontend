@@ -7,7 +7,6 @@ import { AuthContext } from "./context/AuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-// Course Details page එක import කළා
 
 // Student Pages
 import Courses from "./pages/student/Courses";
@@ -20,9 +19,19 @@ import CreateCourse from "./pages/instructor/CreateCourse";
 import EditCourse from "./pages/instructor/EditCourse";
 import CourseDetails from "./pages/instructor/CourseDetails";
 
-// Role-based Protected Route Wrapper
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="mt-2 text-sm text-slate-600">Loading session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -35,7 +44,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-// Public Route Wrapper (Redirects if already logged in)
 const PublicRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
   if (user) {
@@ -48,16 +56,12 @@ function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-        {/* Navigation Bar */}
         <Navbar />
 
-        {/* Main Content Area */}
         <main className="flex-grow">
           <Routes>
-            {/* Home Route */}
             <Route path="/" element={<Home />} />
 
-            {/* Auth Routes */}
             <Route 
               path="/login" 
               element={
@@ -75,7 +79,6 @@ function App() {
               } 
             />
 
-            {/* Student Routes */}
             <Route 
               path="/courses" 
               element={
@@ -101,7 +104,6 @@ function App() {
               } 
             />
 
-            {/* Shared / Dynamic Course Details Route */}
             <Route 
               path="/courses/:id" 
               element={
@@ -111,7 +113,6 @@ function App() {
               } 
             />
 
-            {/* Instructor Routes */}
             <Route 
               path="/dashboard" 
               element={
@@ -137,7 +138,6 @@ function App() {
               } 
             />
 
-            {/* 404 Not Found Route */}
             <Route
               path="*"
               element={

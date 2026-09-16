@@ -17,7 +17,6 @@ const CourseDetails = () => {
     useEffect(() => {
         const fetchCourseDetails = async () => {
             try {
-                // 1. සියලුම courses ලබාගෙන අදාළ id එක සොයාගැනීම
                 const coursesRes = await api.get('/courses');
                 const foundCourse = coursesRes.data.find(c => c._id === id);
 
@@ -29,7 +28,6 @@ const CourseDetails = () => {
 
                 setCourse(foundCourse);
 
-                // 2. Student කෙනෙක් නම්, ඔහු/ඇය දැනටමත් මෙම course එකට enroll වී ඇත්දැයි පරීක්ෂා කිරීම
                 if (user?.role === 'student') {
                     const enrollRes = await api.get('/courses/my-enrollments');
                     const enrolled = enrollRes.data.some(item => item.course?._id === id);
@@ -45,7 +43,6 @@ const CourseDetails = () => {
         fetchCourseDetails();
     }, [id, user]);
 
-    // Enroll handler function for students
     const handleEnroll = async () => {
         setEnrolling(true);
         try {
@@ -59,16 +56,23 @@ const CourseDetails = () => {
         }
     };
 
-    // Delete handler for instructors
     const handleDelete = async () => {
         if (window.confirm('Are you sure you want to delete this course?')) {
             try {
                 await api.delete(`/courses/${id}`);
                 alert('Course deleted successfully');
-                navigate('/instructor-dashboard');
+                navigate('/dashboard');
             } catch (err) {
                 alert(err.response?.data?.message || 'Failed to delete course');
             }
+        }
+    };
+
+    const handleGoBack = () => {
+        if (user?.role === 'student') {
+            navigate('/courses');
+        } else {
+            navigate(-1);
         }
     };
 
@@ -83,29 +87,29 @@ const CourseDetails = () => {
                     <h2 className="text-2xl font-bold text-slate-800 mb-2">Oops!</h2>
                     <p className="text-sm text-slate-500 mb-6">{error || 'Course not found.'}</p>
                     <button 
-                        onClick={() => navigate(-1)} 
+                        onClick={handleGoBack} 
                         className="inline-flex items-center gap-2 bg-blue-600 text-white font-bold px-5 py-2.5 rounded-xl shadow-md hover:bg-blue-700 transition"
                     >
-                        <ArrowLeft size={16} /> Go Back
+                        <ArrowLeft size={16} /> {user?.role === 'student' ? 'All Courses' : 'Go Back'}
                     </button>
                 </div>
             </div>
         );
     }
 
-    // Check if the logged-in user is the creator of this course
     const isOwner = user?.role === 'instructor' && course.instructor?._id === user?._id;
 
     return (
         <div className="min-h-[calc(100vh-72px)] bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 font-sans">
             <div className="max-w-4xl mx-auto">
                 
-                {/* Back Button */}
+                {/* Back / All Courses Button */}
                 <button 
-                    onClick={() => navigate(-1)} 
+                    onClick={handleGoBack} 
                     className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-blue-600 mb-6 transition-colors"
                 >
-                    <ArrowLeft size={18} /> Back
+                    {user?.role === 'student' ? <BookOpen size={18} /> : <ArrowLeft size={18} />}
+                    {user?.role === 'student' ? 'All Courses' : 'Back'}
                 </button>
 
                 {/* Course Header Card */}

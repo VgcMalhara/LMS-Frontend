@@ -21,14 +21,14 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
-  // Dropdown එකෙන් පිටින් click කළොත් close වෙන්න reference එකක්
+  // Dropdown click close reference
   const dropdownRef = useRef(null);
 
   const closeMenu = () => {
     setIsOpen(false);
   };
 
-  // Outside click detect කරලා dropdown එක close කිරීම
+  // Outside click detect dropdown close
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -183,7 +183,7 @@ const Navbar = () => {
             ) : (
               <div 
                 className="relative" 
-                ref={dropdownRef} // Dropdown wrapper එකට ref එක දුන්නා
+                ref={dropdownRef} // Dropdown wrapper ref
               >
                 {/* Profile Trigger */}
                 <button

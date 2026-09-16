@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, GraduationCap, CheckCircle } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import api from '../../api/axios';
+import CourseCard from '../../components/CourseCard';
 
 const MyEnrollments = () => {
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // Fetch enrolled courses for the student
     useEffect(() => {
         const fetchEnrollments = async () => {
             try {
@@ -42,23 +44,12 @@ const MyEnrollments = () => {
                         if (!course) return null;
 
                         return (
-                            <div key={item._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
-                                <div>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                                            <CheckCircle size={14} /> Enrolled
-                                        </span>
-                                    </div>
-                                    <h3 className="text-xl font-bold text-slate-900 mb-2">{course.title}</h3>
-                                    <p className="text-sm text-slate-600 mb-4">{course.description}</p>
-                                    <div className="bg-slate-50 rounded-xl p-3 text-xs font-medium text-slate-700 mb-4">
-                                        <strong>Content:</strong> {course.content}
-                                    </div>
-                                </div>
-                                <div className="pt-4 border-t border-slate-100 text-xs font-semibold text-blue-600">
-                                    Access Granted
-                                </div>
-                            </div>
+                            <CourseCard 
+                                key={item._id}
+                                course={course}
+                                userRole="student"
+                                isEnrolled={true} 
+                            />
                         );
                     })}
                 </div>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, Trash2, BookOpen, Layers, Pencil, Eye } from 'lucide-react';
+import { PlusCircle, BookOpen } from 'lucide-react';
 import api from '../../api/axios';
+import CourseCard from '../../components/CourseCard';
 
 const InstructorDashboard = () => {
     const [courses, setCourses] = useState([]);
@@ -67,44 +68,13 @@ const InstructorDashboard = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {courses.map((course) => (
-                        <div 
-                            key={course._id} 
-                            onClick={() => navigate(`/courses/${course._id}`)}
-                            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between cursor-pointer hover:shadow-md hover:border-blue-200 transition-all duration-200 group"
-                        >
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-                                        <Layers size={14} /> {course.category || 'Course'}
-                                    </span>
-                                    
-                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                        <button 
-                                            onClick={() => navigate(`/edit-course/${course._id}`)} 
-                                            className="text-slate-400 hover:text-blue-600 transition p-1.5 rounded-lg hover:bg-blue-50"
-                                            title="Edit Course"
-                                        >
-                                            <Pencil size={18} />
-                                        </button>
-                                        <button 
-                                            onClick={(e) => handleDelete(course._id, e)} 
-                                            className="text-slate-400 hover:text-red-600 transition p-1.5 rounded-lg hover:bg-red-50"
-                                            title="Delete Course"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">{course.title}</h3>
-                                <p className="text-sm text-slate-600 line-clamp-3 mb-4">{course.description}</p>
-                            </div>
-                            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-400">
-                                <span>Instructor: {course.instructor?.username || 'You'}</span>
-                                <span className="text-blue-600 font-bold uppercase tracking-wider flex items-center gap-1">
-                                    <Eye size={14} /> View Details
-                                </span>
-                            </div>
-                        </div>
+                        <CourseCard 
+                            key={course._id}
+                            course={course}
+                            userRole="instructor"
+                            onEdit={() => navigate(`/edit-course/${course._id}`)}
+                            onDelete={(e) => handleDelete(course._id, e)}
+                        />
                     ))}
                 </div>
             )}

@@ -41,7 +41,7 @@ const Hero = () => {
     const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % slides.length);
 
     return (
-        // h-[calc(100vh-72px)] මඟින් screen එකෙන් පහළට යන්නේ නැතුව හරියටම screen එකට fit වෙයි
+        // h-[calc(100vh-72px)] screen fit
         <section className="relative w-full h-[calc(100vh-72px)] min-h-[550px] max-h-[850px] overflow-hidden bg-slate-950 flex items-center">
             
             {/* Background Slides Container with Absolute Positioning to prevent height jumping */}
