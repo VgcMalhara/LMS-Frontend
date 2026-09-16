@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import { useContext } from "react";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import { AuthContext } from "./context/AuthContext";
 
 // Pages
@@ -164,6 +165,7 @@ function App() {
             />
           </Routes>
         </main>
+        <Footer />
       </div>
     </BrowserRouter>
   );
