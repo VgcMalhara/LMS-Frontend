@@ -7,6 +7,8 @@ import { AuthContext } from "./context/AuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AboutUs from "./pages/AboutUs";       // <-- Added About Us page import
+import ContactUs from "./pages/ContactUs";   // <-- Added Contact Us page import
 
 // Student Pages
 import Courses from "./pages/student/Courses";
@@ -61,6 +63,10 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+
+            {/* Public Info Pages */}
+            <Route path="/about" element={<AboutUs />} />      
+            <Route path="/contact" element={<ContactUs />} />   
 
             <Route 
               path="/login" 

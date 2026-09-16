@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, FileText, AlignLeft, ArrowLeft, AlertCircle, Layers } from 'lucide-react';
+import { BookOpen, FileText, AlignLeft, ArrowLeft, AlertCircle, Layers, CheckCircle2, X } from 'lucide-react';
 import api from '../../api/axios';
 
 const CreateCourse = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [content, setContent] = useState('');
-    const [category, setCategory] = useState(''); // <-- Category state added
+    const [category, setCategory] = useState('');
     
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const navigate = useNavigate();
+    
+    // State for top sliding success/notification banner
+    const [notification, setNotification] = useState(null); // { type: 'success' | 'error', message: '' }
+    
+    const useNavigateInstance = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,21 +23,51 @@ const CreateCourse = () => {
         setIsLoading(true);
 
         try {
-            // Added category to the payload
+            // Send request to create course
             await api.post('/courses', { title, description, content, category });
-            navigate('/dashboard'); 
+            
+            // Show success top notification banner
+            setNotification({ type: 'success', message: 'Course published successfully!' });
+
+            // Delay navigation slightly so user can see the success notification
+            setTimeout(() => {
+                useNavigateInstance('/dashboard');
+            }, 1500);
+
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create course.');
-        } finally {
+            const errorMsg = err.response?.data?.message || 'Failed to create course.';
+            setError(errorMsg);
+            setNotification({ type: 'error', message: errorMsg });
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 relative">
             
+            {/* Top Sliding Notification Banner */}
+            {notification && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-6 py-3.5 rounded-2xl shadow-2xl border text-sm font-bold animate-in fade-in slide-in-from-top-4 duration-300 bg-white">
+                    {notification.type === 'success' ? (
+                        <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
+                    ) : (
+                        <AlertCircle size={20} className="text-red-600 shrink-0" />
+                    )}
+                    <span className={notification.type === 'success' ? 'text-emerald-900' : 'text-red-900'}>
+                        {notification.message}
+                    </span>
+                    <button 
+                        onClick={() => setNotification(null)} 
+                        className="text-slate-400 hover:text-slate-600 ml-2 p-1 rounded-lg hover:bg-slate-100 transition"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
+            )}
+
+            {/* Back Button */}
             <button
-                onClick={() => navigate(-1)}
+                onClick={() => useNavigateInstance(-1)}
                 className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition mb-6"
             >
                 <ArrowLeft size={16} /> Back

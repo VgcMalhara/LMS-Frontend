@@ -1,4 +1,4 @@
-import { useContext, useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
 import {
     BookOpen,
@@ -13,6 +13,9 @@ import {
     UserPlus,
     X,
     ChevronDown,
+    Home,
+    Info,
+    Mail
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 
@@ -41,52 +44,74 @@ const Navbar = () => {
     };
   }, []);
 
-  const navLinks =
-    user?.role === "student"
-      ? [
-          {
-            to: "/",
-            label: "Home",
-            icon: GraduationCap,
-            end: true,
-          },
-          {
-            to: "/courses",
-            label: "Courses",
-            icon: BookOpen,
-          },
-          {
-            to: "/my-enrollments",
-            label: "My Learning",
-            icon: LayoutDashboard,
-          },
-          {
-            to: "/ai-advisor",
-            label: "AI Advisor",
-            icon: Brain,
-            featured: true,
-          },
-        ]
-      : user?.role === "instructor"
-      ? [
-          {
-            to: "/",
-            label: "Home",
-            icon: GraduationCap,
-            end: true,
-          },
-          {
-            to: "/dashboard",
-            label: "My Courses",
-            icon: BookOpen,
-          },
-          {
-            to: "/create-course",
-            label: "Create Course",
-            icon: Plus,
-          },
-        ]
-      : [];
+  // Define navigation links based on user authentication status and role
+  const navLinks = !user
+    ? [
+        // Public links for unauthenticated / guest users
+        {
+          to: "/",
+          label: "Home",
+          icon: Home,
+          end: true,
+        },
+        {
+          to: "/about",
+          label: "About Us",
+          icon: Info,
+        },
+        {
+          to: "/contact",
+          label: "Contact Us",
+          icon: Mail,
+        },
+      ]
+    : user?.role === "student"
+    ? [
+        // Student specific navigation links
+        {
+          to: "/",
+          label: "Home",
+          icon: GraduationCap,
+          end: true,
+        },
+        {
+          to: "/courses",
+          label: "Courses",
+          icon: BookOpen,
+        },
+        {
+          to: "/my-enrollments",
+          label: "My Learning",
+          icon: LayoutDashboard,
+        },
+        {
+          to: "/ai-advisor",
+          label: "AI Advisor",
+          icon: Brain,
+          featured: true,
+        },
+      ]
+    : user?.role === "instructor"
+    ? [
+        // Instructor specific navigation links
+        {
+          to: "/",
+          label: "Home",
+          icon: GraduationCap,
+          end: true,
+        },
+        {
+          to: "/dashboard",
+          label: "My Courses",
+          icon: BookOpen,
+        },
+        {
+          to: "/create-course",
+          label: "Create Course",
+          icon: Plus,
+        },
+      ]
+    : [];
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl">
@@ -114,7 +139,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          {user && navLinks.length > 0 && (
+          {navLinks.length > 0 && (
             <div className="hidden items-center rounded-2xl border border-slate-200/60 bg-slate-50/50 p-1 md:flex">
               {navLinks.map((link) => {
                 const Icon = link.icon;
@@ -183,7 +208,7 @@ const Navbar = () => {
             ) : (
               <div 
                 className="relative" 
-                ref={dropdownRef} // Dropdown wrapper ref
+                ref={dropdownRef}
               >
                 {/* Profile Trigger */}
                 <button
@@ -217,7 +242,6 @@ const Navbar = () => {
                 {/* Dropdown Menu */}
                 {isProfileOpen && (
                   <div className="absolute right-0 top-[calc(100%+0.5rem)] w-60 origin-top-right rounded-2xl border border-slate-100 bg-white p-2 shadow-xl shadow-slate-200/50 ring-1 ring-slate-900/5 z-50">
-                    {/* User Info Header */}
                     <div className="mb-2 rounded-xl bg-slate-50 p-3">
                       <p className="text-xs font-semibold text-slate-500">Signed in as</p>
                       <p className="truncate text-sm font-bold text-slate-900 mt-0.5">
@@ -227,7 +251,6 @@ const Navbar = () => {
 
                     <div className="h-px bg-slate-100 my-2 mx-1" />
 
-                    {/* Dropdown Actions */}
                     <button
                       type="button"
                       onClick={() => {
@@ -272,7 +295,7 @@ const Navbar = () => {
               </div>
             )}
 
-            {user && navLinks.length > 0 && (
+            {navLinks.length > 0 && (
               <div className="space-y-1.5">
                 {navLinks.map((link) => {
                   const Icon = link.icon;
