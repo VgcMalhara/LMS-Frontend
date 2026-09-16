@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// Create an Axios instance with the deployed backend base URL
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api', // Your backend URL
+    baseURL: 'https://lms-backend-production-8f33.up.railway.app/api', // Railway production backend URL
 });
 
 // Automatically attach JWT token to every request if user is logged in

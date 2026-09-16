@@ -1,29 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowRight, BookOpen, Brain, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Brain, ChevronLeft, ChevronRight, CheckCircle2, LayoutDashboard, PlusCircle, UserPlus, LogIn } from 'lucide-react';
+import { AuthContext } from '../../context/AuthContext';
 
 const Hero = () => {
-    const slides = [
+    const { user } = useContext(AuthContext);
+
+    // Dynamic slides based on user role
+    const slides = user?.role === 'instructor' ? [
         {
             image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop",
-            tag: "Next-Gen LMS Platform",
-            title: "Empower Your Future with",
-            highlight: "AI-Driven Learning",
-            description: "Discover expert-led courses, seamless interactive tracking, and personalized career pathways tailored just for you."
+            tag: "Instructor Portal",
+            title: "Build and Publish Courses",
+            highlight: "Share Your Expertise",
+            description: "Easily create structured curricula, manage student enrollments, and scale your teaching impact with our intuitive platform."
         },
         {
             image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
-            tag: "World-Class Instructors",
-            title: "Master In-Demand Skills",
-            highlight: "From Industry Experts",
-            description: "Build robust full-stack applications, understand database architecture, and get certified at your own pace."
+            tag: "Content Management",
+            title: "Manage Your Curriculum",
+            highlight: "Keep Students Engaged",
+            description: "Update course materials in real-time, monitor student progress, and maintain high teaching standards effortlessly."
+        }
+    ] : [
+        {
+            image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2071&auto=format&fit=crop",
+            tag: "Modern Learning Platform",
+            title: "Advance Your Career with",
+            highlight: "Expert-Led Courses",
+            description: "Explore practical curricula, track your daily progress step-by-step, and learn real-world skills at your own pace."
+        },
+        {
+            image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+            tag: "Industry Standard Skills",
+            title: "Master Full-Stack Development",
+            highlight: "From Scratch to Pro",
+            description: "Build production-ready applications, understand robust database architectures, and gain hands-on coding experience."
         },
         {
             image: "https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop",
-            tag: "Smart Career Advice",
-            title: "Accelerate Your Growth",
-            highlight: "With ChatGPT Integration",
-            description: "Get real-time course recommendations and intelligent advice based on your exact career objectives."
+            tag: "Smart Learning Assistant",
+            title: "Get Personalized Guidance",
+            highlight: "Tailored to Your Goals",
+            description: "Receive intelligent recommendations on what to learn next based on your exact career objectives."
         }
     ];
 
@@ -41,10 +60,9 @@ const Hero = () => {
     const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % slides.length);
 
     return (
-        // h-[calc(100vh-72px)] screen fit
         <section className="relative w-full h-[calc(100vh-72px)] min-h-[550px] max-h-[850px] overflow-hidden bg-slate-950 flex items-center">
             
-            {/* Background Slides Container with Absolute Positioning to prevent height jumping */}
+            {/* Background Slides Container */}
             {slides.map((slide, index) => (
                 <div
                     key={index}
@@ -52,7 +70,6 @@ const Hero = () => {
                         index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                     }`}
                 >
-                    {/* Dark & Gradient Overlays */}
                     <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10" />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/60 z-10" />
                     <img
@@ -67,8 +84,8 @@ const Hero = () => {
             <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full flex flex-col justify-center py-6">
                 <div className="max-w-2xl">
                     
-                    {/* Animated Tag / Badge */}
-                    <div key={`tag-${currentIndex}`} className="animate-in fade-in slide-in-from-bottom-2 duration-500 mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 border border-white/20 backdrop-blur-md shadow-lg w-max">
+                    {/* Animated Tag Badge */}
+                    <div key={`tag-${currentIndex}`} className="animate-in fade-in slide-in-from-bottom-2 duration-500 mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 border border-white/25 backdrop-blur-md shadow-lg w-max">
                         <Sparkles size={16} className="text-blue-400" />
                         <span className="text-xs font-bold tracking-wider uppercase text-blue-200">
                             {slides[currentIndex].tag}
@@ -88,39 +105,82 @@ const Hero = () => {
                         {slides[currentIndex].description}
                     </p>
 
-                    {/* Action Buttons */}
+                    {/* Dynamic Action Buttons Based on Role / Authentication Status */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                        <Link
-                            to="/courses"
-                            className="group flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50"
-                        >
-                            <BookOpen size={20} />
-                            Explore Courses
-                            <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
-                        </Link>
+                        {user?.role === 'instructor' ? (
+                            <>
+                                <Link
+                                    to="/dashboard"
+                                    className="group flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50"
+                                >
+                                    <LayoutDashboard size={20} />
+                                    Instructor Dashboard
+                                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                                </Link>
 
-                        <Link
-                            to="/ai-advisor"
-                            className="flex items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-7 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-white/20 hover:border-white/40 hover:scale-105"
-                        >
-                            <Brain size={20} className="text-purple-400" />
-                            AI Advisor
-                        </Link>
+                                <Link
+                                    to="/create-course"
+                                    className="flex items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-7 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-white/20 hover:border-white/40 hover:scale-105"
+                                >
+                                    <PlusCircle size={20} className="text-emerald-400" />
+                                    Create New Course
+                                </Link>
+                            </>
+                        ) : user?.role === 'student' ? (
+                            <>
+                                <Link
+                                    to="/courses"
+                                    className="group flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50"
+                                >
+                                    <BookOpen size={20} />
+                                    Explore Courses
+                                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                                </Link>
+
+                                <Link
+                                    to="/ai-advisor"
+                                    className="flex items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-7 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-white/20 hover:border-white/40 hover:scale-105"
+                                >
+                                    <Brain size={20} className="text-purple-400" />
+                                    AI Career Advisor
+                                </Link>
+                            </>
+                        ) : (
+                            // Public / Guest View CTAs: Sign Up & Login
+                            <>
+                                <Link
+                                    to="/register"
+                                    className="group flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-7 py-3.5 text-base font-bold text-white shadow-xl shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50"
+                                >
+                                    <UserPlus size={20} />
+                                    Get Started (Sign Up)
+                                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+                                </Link>
+
+                                <Link
+                                    to="/login"
+                                    className="flex items-center justify-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-md px-7 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-white/20 hover:border-white/40 hover:scale-105"
+                                >
+                                    <LogIn size={20} className="text-blue-400" />
+                                    Sign In (Login)
+                                </Link>
+                            </>
+                        )}
                     </div>
 
                     {/* Mini Feature Highlights */}
                     <div className="mt-8 hidden sm:flex items-center gap-6 pt-6 border-t border-white/10 text-xs font-semibold text-slate-400">
                         <div className="flex items-center gap-2">
                             <CheckCircle2 size={16} className="text-blue-400" />
-                            <span>JWT Secure Auth</span>
+                            <span>Interactive Course Catalog</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <CheckCircle2 size={16} className="text-indigo-400" />
-                            <span>Role-Based Access</span>
+                            <span>Seamless Student Enrollment</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <CheckCircle2 size={16} className="text-purple-400" />
-                            <span>ChatGPT Powered</span>
+                            <span>ChatGPT AI Powered Guidance</span>
                         </div>
                     </div>
 
