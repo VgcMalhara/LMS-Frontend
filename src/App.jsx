@@ -21,6 +21,7 @@ import InstructorDashboard from "./pages/instructor/Dashboard";
 import CreateCourse from "./pages/instructor/CreateCourse";
 import EditCourse from "./pages/instructor/EditCourse";
 import CourseDetails from "./pages/instructor/CourseDetails";
+import CourseStudents from "./pages/instructor/CourseStudents";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useContext(AuthContext);
@@ -141,6 +142,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['instructor']}>
                   <EditCourse />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/courses/:id/students" 
+              element={
+                <ProtectedRoute allowedRoles={['instructor']}>
+                  <CourseStudents />
                 </ProtectedRoute>
               } 
             />

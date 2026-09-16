@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, GraduationCap, CheckCircle, Eye, Pencil, Trash2 } from 'lucide-react';
+import { BookOpen, GraduationCap, CheckCircle, Eye, Pencil, Trash2, Users } from 'lucide-react';
 
 const CourseCard = ({ 
     course, 
@@ -7,7 +7,8 @@ const CourseCard = ({
     isEnrolled, 
     onEnroll, 
     onEdit, 
-    onDelete 
+    onDelete,
+    onViewStudents 
 }) => {
     const navigate = useNavigate();
 
@@ -86,9 +87,17 @@ const CourseCard = ({
                                 <GraduationCap size={14} /> Enroll Now
                             </button>
                         )
+                    ) : userRole === 'instructor' ? (
+                        /* View Students Button for Instructor Dashboard */
+                        <button
+                            onClick={onViewStudents}
+                            className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 font-bold px-3.5 py-2 rounded-xl border border-slate-200 transition text-xs"
+                        >
+                            <Users size={14} /> View Students
+                        </button>
                     ) : (
                         <div className="text-xs font-bold text-slate-400 py-1">
-                            {userRole ? 'Instructor View' : 'Guest View'}
+                            Guest View
                         </div>
                     )}
                 </div>

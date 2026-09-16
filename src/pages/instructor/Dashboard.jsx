@@ -28,6 +28,7 @@ const InstructorDashboard = () => {
         }
     };
 
+    // Load courses on component mount
     useEffect(() => {
         fetchCourses();
     }, []);
@@ -39,7 +40,7 @@ const InstructorDashboard = () => {
         setDeleteModalOpen(true);
     };
 
-    // Execute course deletion
+    // Execute course deletion via API call
     const confirmDelete = async () => {
         if (!courseToDelete) return;
 
@@ -64,6 +65,7 @@ const InstructorDashboard = () => {
         }
     };
 
+    // Show loading indicator while fetching data
     if (loading) return <div className="text-center py-20 font-bold text-slate-500">Loading dashboard...</div>;
 
     return (
@@ -89,6 +91,7 @@ const InstructorDashboard = () => {
                 </div>
             )}
 
+            {/* Header section with title and create button */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Instructor Dashboard</h1>
@@ -103,8 +106,10 @@ const InstructorDashboard = () => {
                 </Link>
             </div>
 
+            {/* Error display if fetching fails */}
             {error && <div className="mb-6 rounded-xl bg-red-50 p-4 border border-red-100 text-red-700 text-sm font-semibold">{error}</div>}
 
+            {/* Course list grid or empty state */}
             {courses.length === 0 ? (
                 <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
                     <BookOpen size={48} className="mx-auto text-slate-300 mb-4" />
@@ -122,6 +127,7 @@ const InstructorDashboard = () => {
                             userRole="instructor"
                             onEdit={() => navigate(`/edit-course/${course._id}`)}
                             onDelete={(e) => handleDeleteClick(course._id, e)}
+                            onViewStudents={() => navigate(`/courses/${course._id}/students`)} // Navigate to enrolled students table
                         />
                     ))}
                 </div>
