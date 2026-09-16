@@ -13,10 +13,17 @@ const AIAdvisor = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [requestsRemaining, setRequestsRemaining] = useState(null);
 
-    const messagesEndRef = useRef(null);
+    // 1. Ref to target the specific chat container (prevents whole-page scrolling)
+    const chatContainerRef = useRef(null);
 
+    // 2. Scroll function that only scrolls inside the targeted container
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     };
 
     useEffect(() => {
@@ -65,7 +72,7 @@ const AIAdvisor = () => {
         }
     };
 
-    // AI message (ID: xxxxx) Clickable Link
+    // Parse and render AI messages with clickable course links (ID: xxxxx)
     const renderFormattedContent = (content) => {
         if (!content) return null;
 
@@ -130,8 +137,11 @@ const AIAdvisor = () => {
             {/* Chat Box Container */}
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm flex-1 flex flex-col overflow-hidden">
                 
-                {/* Messages Scroll Area with proper bottom padding */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-50/50">
+                {/* 3. Attached the localized scroll ref here */}
+                <div 
+                    ref={chatContainerRef}
+                    className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-slate-50/50"
+                >
                     {chatHistory.map((msg, index) => (
                         <div 
                             key={index} 
@@ -170,11 +180,9 @@ const AIAdvisor = () => {
                             </div>
                         </div>
                     )}
-                    
-                    <div ref={messagesEndRef} />
                 </div>
 
-                {/* Fixed Input Area at the bottom inside flex flow (No overlapping) */}
+                {/* Fixed Input Area */}
                 <form 
                     onSubmit={handleSubmit} 
                     className="p-3 sm:p-4 bg-white border-t border-slate-100 flex items-center gap-3 shadow-md shrink-0"
@@ -198,7 +206,6 @@ const AIAdvisor = () => {
                 </form>
 
             </div>
-
         </div>
     );
 };
